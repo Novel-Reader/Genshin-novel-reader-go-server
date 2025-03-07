@@ -17,7 +17,9 @@ func main() {
 
     r := gin.Default()
 		r.Use(middleware.MyMiddleware())
-		r.GET("/", routes.IndexRoute)
+		r.Any("/", routes.IndexRoute)
+		r.Any("/ping", routes.PingRoute)
+		r.Any("/api/user", routes.ApiUserRoute)
 		r.Run(":" + config.Port)
 }
 
