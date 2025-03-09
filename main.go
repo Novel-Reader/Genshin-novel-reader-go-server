@@ -35,9 +35,7 @@ func main() {
 		r.Use(middleware.MyMiddleware())
 
 		// routes
-		r.Any("/", routes.IndexRoute)
-		r.Any("/ping", routes.PingRoute)
-		r.Any("/api/user", routes.ApiUserRoute)
+		routes.Routes(&r.RouterGroup)
 
 		r.Run(":" + config.Port)
 }
