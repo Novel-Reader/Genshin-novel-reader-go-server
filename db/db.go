@@ -4,11 +4,9 @@ import (
     "fmt"
     // "database/sql" 不能直接使用，需要使用别名 sqlpkg
     sqlpkg "database/sql"
-    "log"
     "myproject/config"
     // MySQL 驱动包是独立的包，需要单独导入它，所以前面加入了 _
     _ "github.com/go-sql-driver/mysql"
-    "github.com/fatih/color"
 )
 
 func getMySQLConfig() (string, error) {
@@ -22,8 +20,6 @@ func getMySQLConfig() (string, error) {
 }
 
 func QueryDB(sql string, args ...interface{}) ([]map[string]interface{}, error) {
-  log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
-  log.SetOutput(color.Output)
   dsn, err := getMySQLConfig()
   if err != nil {
     return nil, err

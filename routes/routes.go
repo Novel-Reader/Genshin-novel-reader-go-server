@@ -60,12 +60,57 @@ func ApiUserRoute(c *gin.Context) {
 			c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		}
 	} else if c.Request.Method == "POST" {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "Not support now",
-		})
+		if err := c.Request.ParseForm(); err != nil {
+			log.Println(err)
+			c.JSON(http.StatusBadRequest, gin.H{"error": "请求体无效"})
+			return
+		}
+		email := c.PostForm("email")
+		name := c.PostForm("name")
+		password := c.PostForm("password")
+
+		if email == "" || name == "" || password == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+			return
+		}
+		if email == "" || name == "" || password == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Email, username or password is not correct"})
+			return
+		}
+		if len(password) < 6 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Password is too short"})
+			return
+		}
+		results, err := db.QueryDB("SELECT * FROM user WHERE email=?", email)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+			return
+		}
+		if len(results) > 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Email already exists"})
+			return
+		}
+		// If email not found, insert new email into db
+		sql := "INSERT INTO user (name, email, password) VALUES (?, ?, ?)"
+		_, err = db.QueryDB(sql, name, email, password)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to insert new user"})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"message": "User inserted successfully"})
 	} else if c.Request.Method == "DELETE" {
+		email := c.Query("email")
+		if email == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "email is required"})
+			return
+		}
+		_, err := db.QueryDB("DELETE FROM user WHERE email = ?", email)
+		if err != nil {
+				log.Println(err)
+				return
+		}
 		c.JSON(http.StatusOK, gin.H{
-			"message": "Not support now",
+			"message": "Delete user successfully",
 		})
 	} else {
 		c.JSON(http.StatusMethodNotAllowed, gin.H{

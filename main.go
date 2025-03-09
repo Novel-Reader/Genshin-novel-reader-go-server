@@ -6,9 +6,21 @@ import (
 		"myproject/routes"
 		"myproject/config"
 		"log"
+		"os"
+		"github.com/fatih/color"
 )
 
 func main() {
+
+		logFile, err := os.OpenFile("novel-reader-go-server.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+		log.SetOutput(color.Output)
+
+		gin.DefaultWriter = logFile
+		gin.DefaultErrorWriter = logFile
 
 		config, err := config.LoadConfig("config/config.json")
 		if err != nil {
@@ -16,10 +28,17 @@ func main() {
 		}
 
     r := gin.Default()
+		r.SetTrustedProxies([]string{"127.0.0.1"})
+
+		// middleware
+		r.Use(middleware.RestrictMethodsMiddleware)
 		r.Use(middleware.MyMiddleware())
+
+		// routes
 		r.Any("/", routes.IndexRoute)
 		r.Any("/ping", routes.PingRoute)
 		r.Any("/api/user", routes.ApiUserRoute)
+
 		r.Run(":" + config.Port)
 }
 
